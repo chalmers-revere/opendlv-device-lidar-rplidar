@@ -19,7 +19,7 @@ project(opendlv-device-lidar-rplidar)
 
 ################################################################################
 # Defining the relevant versions of OpenDLV Standard Message Set and libcluon.
-set(OPENDLV_STANDARD_MESSAGE_SET opendlv-standard-message-set-v0.9.8.odvd)
+set(OPENDLV_STANDARD_MESSAGE_SET opendlv-standard-message-set-v0.9.9.odvd)
 set(CLUON_COMPLETE cluon-complete-v0.0.114.hpp)
 
 ################################################################################
