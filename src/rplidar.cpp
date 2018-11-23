@@ -17,7 +17,7 @@
 
 #include "rplidar.hpp"
 
-RPLidar::RPLidar(const std::string &device, bool verbose) noexcept {
+RPLidar::RPLidar(const std::string &device) noexcept {
   constexpr const uint32_t BAUDRATE{115200};
   constexpr const uint32_t TIMEOUT{500};
   m_rplidarDevice.reset(new serial::Serial(device, BAUDRATE, serial::Timeout::simpleTimeout(TIMEOUT)));
@@ -25,8 +25,7 @@ RPLidar::RPLidar(const std::string &device, bool verbose) noexcept {
     m_rplidarDevice->setDTR(false);
 
     m_readingBytesFromDeviceThread.reset(new std::thread(
-      [verbose,
-       &rplidarDevice = m_rplidarDevice,
+      [&rplidarDevice = m_rplidarDevice,
        &decoder = m_decoder](){
           const uint16_t BUFFER_SIZE{2048};
           uint8_t *data = new uint8_t[BUFFER_SIZE];
@@ -36,14 +35,6 @@ RPLidar::RPLidar(const std::string &device, bool verbose) noexcept {
               size_t bytesAvailable{rplidarDevice->available()};
               size_t bytesRead = rplidarDevice->read(data+size, ((BUFFER_SIZE - size) < bytesAvailable) ? (BUFFER_SIZE - size) : bytesAvailable);
               size += bytesRead;
-
-              if (verbose) {
-                std::cout << "Received " << bytesRead << " bytes; bytes in buffer " << size << std::endl;
-                for (size_t i{0}; i < size; i++) {
-                  std::cout << "0x" << std::hex << +data[i] << std::dec << ", ";
-                }
-                std::cout << std::endl;
-              }
 
               size_t consumed = decoder.decode(data, size);
               for (size_t i{0}; i < (size - consumed); i++) {
@@ -83,7 +74,13 @@ bool RPLidar::isOpen() const noexcept {
   return m_rplidarDevice->isOpen();
 }
 
-void RPLidar::startScanning() {
+void RPLidar::startScanning(
+    std::function<void(const opendlv::device::lidar::rplidar::DeviceInfo &)> delegateDeviceInfo,
+    std::function<void(const opendlv::device::lidar::rplidar::DeviceHealth &)> delegateDeviceHealth,
+    std::function<void(opendlv::proxy::PointCloudReading pc)> delegateCompleteScan) {
+  // Setup delegates to distribute information.
+  m_decoder.setDelegates(delegateDeviceInfo, delegateDeviceHealth, delegateCompleteScan);
+
   // Reset device.
   {
     std::this_thread::sleep_for(std::chrono::seconds(1));

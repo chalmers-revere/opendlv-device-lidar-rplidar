@@ -18,11 +18,13 @@
 #ifndef RPLIDAR
 #define RPLIDAR
 
+#include "opendlv-standard-message-set.hpp"
 #include "rplidar-message-set.hpp"
 #include "serialport.hpp"
 
 #include "rplidar-decoder.hpp"
 
+#include <functional>
 #include <memory>
 #include <thread>
 
@@ -34,12 +36,14 @@ class RPLidar {
   RPLidar &operator=(RPLidar &&) = delete;
 
  public:
-  RPLidar(const std::string &device, bool verbose) noexcept;
+  RPLidar(const std::string &device) noexcept;
   ~RPLidar();
 
  public:
   bool isOpen() const noexcept;
-  void startScanning();
+  void startScanning(std::function<void(const opendlv::device::lidar::rplidar::DeviceInfo &)> delegateDeviceInfo,
+                     std::function<void(const opendlv::device::lidar::rplidar::DeviceHealth &)> delegateDeviceHealth,
+                     std::function<void(opendlv::proxy::PointCloudReading pc)> delegateCompleteScan);
 
  private:
   std::unique_ptr<serial::Serial> m_rplidarDevice{nullptr};

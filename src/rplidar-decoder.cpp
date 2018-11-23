@@ -38,6 +38,16 @@ opendlv::device::lidar::rplidar::DeviceHealth RPLidarDecoder::getDeviceHealth() 
   return m_deviceHealth;
 }
 
+void RPLidarDecoder::setDelegates(
+    std::function<void(const opendlv::device::lidar::rplidar::DeviceInfo &)> delegateDeviceInfo,
+    std::function<void(const opendlv::device::lidar::rplidar::DeviceHealth &)> delegateDeviceHealth,
+    std::function<void(opendlv::proxy::PointCloudReading pc)> delegateCompleteScan) {
+  std::lock_guard<std::mutex> lck(m_dataMutex);
+  m_delegateDeviceInfo = delegateDeviceInfo;
+  m_delegateDeviceHealth = delegateDeviceHealth;
+  m_delegateCompleteScan = delegateCompleteScan;
+}
+
 size_t RPLidarDecoder::decode(const uint8_t *buffer, const size_t size) noexcept {
   const size_t HEADER_SIZE{7};
   size_t offset{0};
@@ -70,8 +80,6 @@ size_t RPLidarDecoder::decode(const uint8_t *buffer, const size_t size) noexcept
         m_payloadSize = info & 0x3FFFFFFF;
         m_nextRPLidarMessage = static_cast<RPLidarMessages>(buffer[offset + 6]);
 
-        //std::cout << "Packet 0x" << std::hex << +m_nextRPLidarMessage << std::dec << ", length = " << m_payloadSize << ", sendMode = " << +sendMode << std::endl;
-
         // Do not process further as we need more data.
         if ((offset + HEADER_SIZE + m_payloadSize) > size) {
           return offset;
@@ -103,11 +111,17 @@ bool RPLidarDecoder::parseMessage(const uint8_t *buffer, const size_t offset, co
   if (RPLidarDecoder::GOT_INFO == type) {
     std::lock_guard<std::mutex> lck(m_dataMutex);
     m_deviceInfo = getDeviceInfo(buffer, offset, sizeOfMessage);
+    if (nullptr != m_delegateDeviceInfo) {
+      m_delegateDeviceInfo(m_deviceInfo);
+    }
     return true;
   }
   else if (RPLidarDecoder::GOT_HEALTH == type) {
     std::lock_guard<std::mutex> lck(m_dataMutex);
     m_deviceHealth = getDeviceHealth(buffer, offset, sizeOfMessage);
+    if (nullptr != m_delegateDeviceHealth) {
+      m_delegateDeviceHealth(m_deviceHealth);
+    }
     return true;
   }
   else if (RPLidarDecoder::GOT_SCAN == type) {
@@ -173,7 +187,14 @@ bool RPLidarDecoder::parseScan(const uint8_t *buffer, const size_t offset, const
                          .typeOfVerticalAngularLayout(2)
                          .azimuthAngles(listOfAngles);
 
+      if (nullptr != m_delegateCompleteScan) {
+        std::lock_guard<std::mutex> lck(m_dataMutex);
+        m_delegateCompleteScan(m_pointCloudReading);
+      }
+
       m_anglesWritten = 0;
+      m_angles.str("");
+      m_distances.str("");
       m_angles.clear();
       m_distances.clear();
     }

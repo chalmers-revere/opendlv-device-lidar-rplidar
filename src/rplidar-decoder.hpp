@@ -21,6 +21,7 @@
 #include "opendlv-standard-message-set.hpp"
 #include "rplidar-message-set.hpp"
 
+#include <functional>
 #include <mutex>
 #include <sstream>
 
@@ -54,6 +55,9 @@ class RPLidarDecoder {
   ~RPLidarDecoder() = default;
 
  public:
+  void setDelegates(std::function<void(const opendlv::device::lidar::rplidar::DeviceInfo &)> delegateDeviceInfo,
+                    std::function<void(const opendlv::device::lidar::rplidar::DeviceHealth &)> delegateDeviceHealth,
+                    std::function<void(opendlv::proxy::PointCloudReading pc)> delegateCompleteScan);
   size_t decode(const uint8_t *buffer, const size_t size) noexcept;
 
  private:
@@ -64,6 +68,10 @@ class RPLidarDecoder {
   opendlv::device::lidar::rplidar::DeviceHealth getDeviceHealth(const uint8_t *buffer, const size_t offset, const size_t sizeOfMessage) noexcept;
 
  private:
+  std::function<void(const opendlv::device::lidar::rplidar::DeviceInfo &)> m_delegateDeviceInfo{nullptr};
+  std::function<void(const opendlv::device::lidar::rplidar::DeviceHealth &)> m_delegateDeviceHealth{nullptr};
+  std::function<void(opendlv::proxy::PointCloudReading pc)> m_delegateCompleteScan{nullptr};
+
   bool m_inScanningMode{false};
   uint32_t m_payloadSize{0};
   RPLidarMessages m_nextRPLidarMessage{RPLidarDecoder::UNKNOWN};
