@@ -18,6 +18,7 @@
 #ifndef RPLIDAR_DECODER
 #define RPLIDAR_DECODER
 
+#include "opendlv-standard-message-set.hpp"
 #include "rplidar-message-set.hpp"
 
 #include <mutex>
@@ -66,6 +67,11 @@ class RPLidarDecoder {
   bool m_inScanningMode{false};
   uint32_t m_payloadSize{0};
   RPLidarMessages m_nextRPLidarMessage{RPLidarDecoder::UNKNOWN};
+  bool m_foundFirstStart{false};
+  float m_startAzimuth{0};
+  uint32_t m_anglesWritten{0};
+  std::stringstream m_angles{};
+  std::stringstream m_distances{};
 
  public:
   RPLidarMessages getLastRPLidarMessage() const noexcept;
@@ -77,6 +83,7 @@ class RPLidarDecoder {
   RPLidarMessages m_lastRPLidarMessage{RPLidarDecoder::UNKNOWN};
   opendlv::device::lidar::rplidar::DeviceInfo m_deviceInfo{};
   opendlv::device::lidar::rplidar::DeviceHealth m_deviceHealth{};
+  opendlv::proxy::PointCloudReading m_pointCloudReading{};
 };
 
 #endif

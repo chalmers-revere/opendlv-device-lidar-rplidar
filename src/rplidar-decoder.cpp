@@ -140,7 +140,7 @@ bool RPLidarDecoder::parseScan(const uint8_t *buffer, const size_t offset, const
     return false;
   }
 
-  uint8_t quality{byte0 >> 2};
+  //uint8_t quality{byte0 >> 2};
   float angle = ((byte1 & 0xFF) | ((buffer[offset + 2] & 0xFF) << 8)) >> 1;
   angle /= 64.0f;
 
@@ -149,8 +149,40 @@ bool RPLidarDecoder::parseScan(const uint8_t *buffer, const size_t offset, const
   // Turn into m.
   distance /= 1000.0f;
 
-  std::cout << "Scan: start = " << startFlag << ", quality = " << +quality << ", angle = " << angle << ", distance = " << distance << std::endl;
+  if (startFlag && !m_foundFirstStart) {
+    m_foundFirstStart = true;
+  }
 
+  // Copy entries into buffers.
+  if (!startFlag && m_foundFirstStart) {
+    m_anglesWritten++;
+    m_angles.write(reinterpret_cast<char*>(&angle), sizeof(float));
+    m_distances.write(reinterpret_cast<char*>(&distance), sizeof(float));
+  }
+
+  // Send PointCloud and start over.
+  if (startFlag && m_foundFirstStart) {
+    if (m_anglesWritten > 200) {
+      const std::string listOfAngles = m_angles.str();
+      const std::string listOfDistances = m_distances.str();
+      m_pointCloudReading.startAzimuth(m_startAzimuth)
+                         .endAzimuth(0)
+                         .entriesPerAzimuth(1)
+                         .distances(listOfDistances)
+                         .numberOfBitsForIntensity(0)
+                         .typeOfVerticalAngularLayout(2)
+                         .azimuthAngles(listOfAngles);
+
+      m_anglesWritten = 0;
+      m_angles.clear();
+      m_distances.clear();
+    }
+
+    m_anglesWritten++;
+    m_startAzimuth = angle;
+    m_angles.write(reinterpret_cast<char*>(&angle), sizeof(float));
+    m_distances.write(reinterpret_cast<char*>(&distance), sizeof(float));
+  }
   return true;
 }
 
