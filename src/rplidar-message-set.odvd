@@ -1,0 +1,45 @@
+/*
+ * Copyright (C) 2018  Christian Berger
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+message opendlv.device.lidar.rplidar.DeviceInfo [id = 3041] {
+  uint8 model             [id = 1];
+  uint8 firmware_minor    [id = 2];
+  uint8 firmware_major    [id = 3];
+  uint8 hardware          [id = 4];
+  uint32 serialNumber0    [id = 5];
+  uint32 serialNumber1    [id = 6];
+  uint32 serialNumber2    [id = 7];
+  uint32 serialNumber3    [id = 8];
+}
+
+message opendlv.device.lidar.rplidar.DeviceHealth [id = 3042] {
+  uint8 status            [id = 1];
+  uint16 error_code       [id = 2];
+}
+
+message opendlv.device.lidar.rplidar.Scan [id = 3043] {
+  float startAzimuth      [id = 1];
+  float endAzimuth        [id = 2];
+  uint8 entriesPerAzimuth [id = 3];
+  bytes distances         [id = 4];
+  uint8 numberOfBitsForIntensity [id = 5];
+  uint8 typeOfVerticalAngularLayout [id = 6]; // 0 = vertical angular layout for HDL32e, 1 = vertical angular layout fo VLP32c, ignored for other sensors, 2 = RPLidar
+  // Additional field
+  bytes angles            [id = 7];
+}
+
