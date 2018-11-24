@@ -1,32 +1,25 @@
 language: cpp
-
 branches:
   only:
   - "/^master$/"
   - "/^pre-release$/"
-
 cache: ccache
-
 compiler:
 - gcc
-
 addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
     packages:
     - g++-6
-
 install:
 - "[ $CC = gcc ] && export CC=gcc-6 || true"
 - "[ $CXX = g++ ] && export CXX=g++-6 || true"
-
 script:
 - mkdir -p build && cd build && cmake .. && make && make test
-
 notifications:
   email:
     on_success: never
     on_failure: never
   slack:
-    secure: rm8hSoX3WouzEN33yQc73CzVZD5VQi6KJB0fqMQb0X0U8AixV+qgLlQAOJpchJXNNf6ZdiAlhfNxRjeMpF9R6ts5xRtT66vKCqoaIRmFezHdLZuktzqDsB0nekhhB76qPPvkJujreYKojNpfv25RsL9nthXl6X4pTzRuaqWHBksKT8lklqbPb/4D9oOzYYLMBZBslIt+ujOi/Y1vYX0ZAhvxEQL6Rz+HBan8jM6Ia8U7g7ZqCfaN+7YP1ndDWVEAd/Uq8sK2LQHjusVTpEYEkJJxSbBTQRWyc4GuMPpkVzkXy3jMalcpq16h9Lm33McVfzUdw0yTRuOKoA2EyJwJgOmKymmkwOCNhu/UvThI9NShqP/Cx9ZU5/1xycHFMM5W3iKvEZSXARz0t5wibPK1E2WjFlhI7pMDjfdzDTsgTyubAP/l9NQjvoH0K4XSqDVePRL+8SLXR7KrE0A9FSzncj8zCqjEfFQpnD4YlkaGLtu+ZStbQD35Ubt7PlzPK3wwd9a8uZl9ex7kXQ2nnX7ZP7Q8QsI5tOw2W6f3K8+Pxa6zhf5CTbLBfWIETOIOvgBLCgJtdd6Qurn70Ma7pjcuiNCRMPYsm/hRzmjJrRe4TSd69Xpz+gTllt8N3Zev//utuJvFPaD8o1hCLs9w+GfY4NgwyZNh1+I3043JdJAcQ5E=
+    secure: GIgIHEXwvmTWkZZVgMi8kUGmFxMdJ3xlLoCefREk7m4DlNNJ3BZ2T4fORPt2NY8CNxOMr3UAdDMEHYhRfQ3QqPLBySmJznihovqyL6HIVkRxXBGWlEFk+1nKvGz0yEn9nR0mzh6iwtkSuZei/lsm03BrvDbFKdwpKVE4mHMxwdE3HeKwMMdmxtCzv0vDTnTYJp/jVBl3P54+JaruqRoKpk5nlkEcZJq+0aU0Hs5CLZ1lGO7GZy4v4v4n+e++yYotKalqjd1MRALMrxwfsZxC9LKJZATwXCvP/Kcd0CjT4Ky7Mym3LBtf9esRfASJi2mxIjLFurB5LBk6SSXxEga4eBGeVYGzxco1A9WzuhEMgfM+H37GdyiomUSXyjfD7Odbk8ABWAWIUUNRXHV2uDamd9eZ66z/rH6Ij4jODftQTsc1c3ar8g2yFU/bzofsL+T9kjAXmwo22g+7Jys6t5gLAmv5opqKz1/28hA1Jxcv/k/DBpZaL5RiTg7DndCuz+mrMMR9eR1uD/VZFbxQQHTmbu6kJl/FfRuy3F8zKdf1+BxHPHfYFMcVl+Xnr3UNhXQYPVAaW7CqHACM0FA9mMdnxaRDqntBPIheMrzAN9YukRRwLgUG87guAGRSdJVN5/uXCLbmpnBWuo4Va+iLWdPcCXxum0ZaqAJSaRhHVGqu/xs=
