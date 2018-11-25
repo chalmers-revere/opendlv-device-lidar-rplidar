@@ -37,7 +37,7 @@ RPLidar::RPLidar(const std::string &device) noexcept {
               size += bytesRead;
 
               size_t consumed = decoder.decode(data, size);
-              for (size_t i{0}; i < (size - consumed); i++) {
+              for (size_t i{0}; (0 < consumed) && (i < (size - consumed)); i++) {
                 data[i] = data[i + consumed];
               }
 

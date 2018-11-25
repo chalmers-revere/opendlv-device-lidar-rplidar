@@ -53,6 +53,8 @@ size_t RPLidarDecoder::decode(const uint8_t *buffer, const size_t size) noexcept
   size_t offset{0};
   while (true) {
     if (m_inScanningMode) {
+      // In scanning mode, we must receive messages of size 5 bytes;
+      // otherwise, it's an error that we simply reject.
       if (offset + 5 > size) {
         return size;
       }
@@ -67,6 +69,8 @@ size_t RPLidarDecoder::decode(const uint8_t *buffer, const size_t size) noexcept
     else {
       // Sanity check whether we consumed all data.
       if ((offset + 6) > size) {
+        // In request/response mode, we must receive messages of size 6 bytes;
+        // otherwise, it's an error that we simply reject.
         return size;
       }
 
