@@ -53,7 +53,7 @@ int32_t main(int32_t argc, char **argv) {
 
       auto deviceHealth = [VERBOSE](const opendlv::device::lidar::rplidar::DeviceHealth &dh){
         if (VERBOSE) {
-          std::clog << "[opendlv-device-lidar-rplidar]: status: " << dh.status() << ", error_code: " << dh.error_code() << std::endl;
+          std::clog << "[opendlv-device-lidar-rplidar]: status: " << +(dh.status()) << ", error_code: " << +(dh.error_code()) << std::endl;
         }
       };
 
@@ -70,8 +70,11 @@ int32_t main(int32_t argc, char **argv) {
       while (od4.isRunning()) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
       }
+      retCode = 0;
     }
-    retCode = 0;
+    else {
+      std::cerr << "[opendlv-device-lidar-rplidar]: Failed to open " << DEVICE << std::endl;
+    }
   }
   return retCode;
 }

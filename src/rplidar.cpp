@@ -20,39 +20,42 @@
 RPLidar::RPLidar(const std::string &device) noexcept {
   constexpr const uint32_t BAUDRATE{115200};
   constexpr const uint32_t TIMEOUT{500};
-  m_rplidarDevice.reset(new serial::Serial(device, BAUDRATE, serial::Timeout::simpleTimeout(TIMEOUT)));
-  if (isOpen()) {
-    m_rplidarDevice->setDTR(false);
+  try {
+    m_rplidarDevice.reset(new serial::Serial(device, BAUDRATE, serial::Timeout::simpleTimeout(TIMEOUT)));
+    if (isOpen()) {
+      m_rplidarDevice->setDTR(false);
 
-    m_readingBytesFromDeviceThread.reset(new std::thread(
-      [&rplidarDevice = m_rplidarDevice,
-       &decoder = m_decoder](){
-          const uint16_t BUFFER_SIZE{2048};
-          uint8_t *data = new uint8_t[BUFFER_SIZE];
-          size_t size{0};
-          while (rplidarDevice->isOpen()) {
-            if (rplidarDevice->waitReadable()) {
-              size_t bytesAvailable{rplidarDevice->available()};
-              size_t bytesRead = rplidarDevice->read(data+size, ((BUFFER_SIZE - size) < bytesAvailable) ? (BUFFER_SIZE - size) : bytesAvailable);
-              size += bytesRead;
+      m_readingBytesFromDeviceThread.reset(new std::thread(
+        [&rplidarDevice = m_rplidarDevice,
+         &decoder = m_decoder](){
+            const uint16_t BUFFER_SIZE{2048};
+            uint8_t *data = new uint8_t[BUFFER_SIZE];
+            size_t size{0};
+            while (rplidarDevice->isOpen()) {
+              if (rplidarDevice->waitReadable()) {
+                size_t bytesAvailable{rplidarDevice->available()};
+                size_t bytesRead = rplidarDevice->read(data+size, ((BUFFER_SIZE - size) < bytesAvailable) ? (BUFFER_SIZE - size) : bytesAvailable);
+                size += bytesRead;
 
-              size_t consumed = decoder.decode(data, size);
-              for (size_t i{0}; (0 < consumed) && (i < (size - consumed)); i++) {
-                data[i] = data[i + consumed];
-              }
+                size_t consumed = decoder.decode(data, size);
+                for (size_t i{0}; (0 < consumed) && (i < (size - consumed)); i++) {
+                  data[i] = data[i + consumed];
+                }
 
-              size -= consumed;
-              // If the parser does not work at all, cancel it.
-              if (size >= BUFFER_SIZE) {
-                break;
+                size -= consumed;
+                // If the parser does not work at all, cancel it.
+                if (size >= BUFFER_SIZE) {
+                  break;
+                }
               }
             }
+            delete [] data;
+            data = nullptr;
           }
-          delete [] data;
-          data = nullptr;
-        }
-    ));
+      ));
+    }
   }
+  catch(...) {}
 }
 
 RPLidar::~RPLidar() {
@@ -71,7 +74,7 @@ RPLidar::~RPLidar() {
 }
 
 bool RPLidar::isOpen() const noexcept {
-  return m_rplidarDevice->isOpen();
+  return (m_rplidarDevice) && m_rplidarDevice->isOpen();
 }
 
 void RPLidar::startScanning(
